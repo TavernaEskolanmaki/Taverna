@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
-<title>Karaoke kappale haku HOVI</title>
+<title>Karaoke kappale haku Taverna</title>
 
 <style>
 body.vaalea { background:#ffffff; color:#000; font-family:Arial, sans-serif; margin:20px; }
@@ -105,7 +105,7 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
 <body class="vaalea">
 
 <div id="ylapalkki">
-    <h2>Karaoke kappale haku HOVI</h2>
+    <h2>Karaoke kappale haku Taverna</h2>
 
     <h3>Haku</h3>
     <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
@@ -178,7 +178,7 @@ let sortKey = "ARTISTI";
 let sortDir = "asc";
 
 async function lataaCSV() {
-    const url = "https://raw.githubusercontent.com/LamminHovi/Karaokelista/main/kappaleet.csv";
+    const url = "https://raw.githubusercontent.com/TavernaEskolanmaki/Taverna/main/kappaleet.csv";
     const res = await fetch(url);
     const txt = await res.text();
 
@@ -311,7 +311,7 @@ function paivitaSortOtsikot() {
 }
 
 async function haePaivitysaika() {
-    const apiUrl = "https://api.github.com/repos/LamminHovi/Karaokelista/commits?path=kappaleet.csv";
+    const apiUrl = "https://api.github.com/repos/TavernaEskolanmaki/Taverna/commits?path=kappaleet.csv";
 
     try {
         const res = await fetch(apiUrl);
@@ -344,7 +344,7 @@ window.onload = () => {
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
-<title>Karaoke kappale haku HOVI</title>
+<title>Karaoke kappale haku Taverna</title>
 
 <style>
 body.vaalea { background:#ffffff; color:#000; font-family:Arial, sans-serif; margin:20px; }
@@ -447,7 +447,7 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
 <body class="vaalea">
 
 <div id="ylapalkki">
-    <h2>Karaoke kappale haku HOVI</h2>
+    <h2>Karaoke kappale haku Taverna</h2>
 
     <h3>Haku</h3>
     <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
@@ -520,8 +520,8 @@ let sortKey = "ARTISTI";
 let sortDir = "asc";
 
 async function lataaCSV() {
-    const url = "https://raw.githubusercontent.com/LamminHovi/Karaokelista/main/kappaleet.csv";
-    const res = await fetch(url);
+    const url = "https://raw.githubusercontent.com/LamminHovi/Karaokelista/main/kappaleet.cs";
+    const res = await fetch(url);v
     const txt = await res.text();
 
     const rows = txt
