@@ -32,6 +32,13 @@ button {
     cursor: pointer;
 }
 
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
 #aznav {
     margin-top: 8px;
     margin-bottom: 8px;
@@ -108,9 +115,13 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
     <h2>Karaoke kappale haku Taverna</h2>
 
     <h3>Haku</h3>
-    <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
-    <button onclick="paivitaNappi()">PÄIVITÄ</button>
-    <button onclick="vaihdaTeema()" id="teemanappi">Tumma teema</button>
+
+    <div id="controls">
+        <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
+        <button onclick="paivitaNappi()">NOLLAUS</button>
+        <button onclick="vaihdaTeema()" id="teemanappi">Tumma teema</button>
+        <button onclick="openHelp()" id="helpnappi">HELP</button>
+    </div>
 
     <p id="paivitysaika" style="font-size:16px; font-weight:bold; margin-top:8px;">Päivitetään...</p>
 
@@ -142,11 +153,14 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
         <button onclick="valitseKirjain('X')">X</button>
         <button onclick="valitseKirjain('Y')">Y</button>
         <button onclick="valitseKirjain('Z')">Z</button>
+        <button onclick="valitseKirjain('Å')">Å</button>
+        <button onclick="valitseKirjain('Ä')">Ä</button>
+        <button onclick="valitseKirjain('Ö')">Ö</button>
     </div>
 
     <div id="eiLoytynyt">Ei löytynyt</div>
 
-    <h3>Koko lista</h3>
+    <h3 id="kokolista">Koko lista</h3>
 </div>
 
 <div class="table-wrapper">
@@ -214,8 +228,11 @@ function paivitaTaulukko() {
     tbody.innerHTML = "";
 
     let rivit = data.filter(r => {
-        if (currentLetter && !r.artistUpper.startsWith(currentLetter)) {
-            return false;
+        if (currentLetter) {
+            // startsWith on artistUpper; handle special Nordic letters correctly
+            if (!r.artistUpper.startsWith(currentLetter)) {
+                return false;
+            }
         }
         if (haku) {
             return r.artistUpper.includes(haku) || r.kappaleUpper.includes(haku);
@@ -257,6 +274,16 @@ function paivitaTaulukko() {
         loytyi = true;
     });
 
+    // Päivitä "Koko lista" -otsikko näyttämään rivien määrä
+    const count = rivit.length;
+    const kokolistaEl = document.getElementById("kokolista");
+    // Jos ei ole suodatusta, näytä koko datan määrä
+    if (!haeTeksti() && !currentLetter) {
+        kokolistaEl.innerText = `Koko lista ${data.length} kpl`;
+    } else {
+        kokolistaEl.innerText = `Koko lista ${count} kpl`;
+    }
+
     document.getElementById("eiLoytynyt").style.display = loytyi ? "none" : "block";
     paivitaSortOtsikot();
 }
@@ -280,6 +307,11 @@ function vaihdaTeema() {
         body.classList.add("tumma");
         nappi.textContent = "Vaalea teema";
     }
+}
+
+function openHelp() {
+    // Avataan help.html uuteen välilehteen; käyttäjä sanoi kopioi help.html Hovin puolelta
+    window.open("help.html", "_blank");
 }
 
 function jarjesta(uusiKey) {
