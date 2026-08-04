@@ -1,2 +1,12 @@
 https://github.com/TavernaEskolanmaki/Taverna 
 Tehty 21.7.2026 n. klo 02:01
+
+4.8.2026 / poy
++ Lisätty koodi.csv yksi uusi koodi TÄHTI
++ Lisätty artisti.csv n. 15 uutta / puuttuvaa artistia
++ Lisätty kappaleet.csv 64 uutta kappaletta suurin osa FIAT pari ZOOM
+
+
+- Tarkoitus päivittää index.html näytöltä nappi linkki linkki help.html 
+- index.html näytölle yht. kappaleita
+- käy kappaleet.csv läpi, on mm kappaleiden nimissä korjattavaa.
