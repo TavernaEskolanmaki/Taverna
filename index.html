@@ -18,25 +18,28 @@ body.tumma  { background:#121212; color:#e0e0e0; font-family:Arial, sans-serif; 
 
 h2, h3 { margin-bottom: 5px; }
 
-input {
-    padding: 10px;
-    width: 350px;
-    max-width: 100%;
-    font-size: 18px;
-    box-sizing: border-box;
-}
-button {
-    padding: 6px 12px;
-    margin: 4px 4px 0 0;
-    font-size: 14px;
-    cursor: pointer;
-}
-
 #controls {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+}
+
+/* Haku-kenttä venyy käytettävissä olevaan tilaan */
+#controls input {
+    padding: 10px;
+    font-size: 18px;
+    box-sizing: border-box;
+    flex: 1;
+    min-width: 180px;
+    width: auto;
+}
+
+button {
+    padding: 6px 12px;
+    margin: 4px 4px 0 0;
+    font-size: 14px;
+    cursor: pointer;
 }
 
 #aznav {
@@ -94,8 +97,7 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
         margin: 10px;
         font-size: 14px;
     }
-    input {
-        width: 100%;
+    #controls input {
         font-size: 16px;
     }
     button {
@@ -117,7 +119,7 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
     <h3>Haku</h3>
 
     <div id="controls">
-        <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
+        <input id="haku" placeholder="Hae... (voit käyttää useita sanoja, esim. 'TAPIO HEINONEN 123')" oninput="paivitaTaulukko()">
         <button onclick="paivitaNappi()">NOLLAUS</button>
         <button onclick="vaihdaTeema()" id="teemanappi">Tumma teema</button>
         <button onclick="openHelp()" id="helpnappi">HELP</button>
@@ -207,6 +209,8 @@ async function lataaCSV() {
         KOODI:   r[3],
         artistUpper: r[0].toUpperCase(),
         kappaleUpper: r[1].toUpperCase(),
+        koneUpper: r[2].toUpperCase(),
+        koodiUpper: r[3].toUpperCase(),
         index: idx
     }));
 
@@ -214,7 +218,7 @@ async function lataaCSV() {
 }
 
 function haeTeksti() {
-    return document.getElementById("haku").value.toUpperCase();
+    return document.getElementById("haku").value.toUpperCase().trim();
 }
 
 function valitseKirjain(kirjain) {
@@ -222,22 +226,36 @@ function valitseKirjain(kirjain) {
     paivitaTaulukko();
 }
 
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function paivitaTaulukko() {
     const haku = haeTeksti();
     const tbody = document.querySelector("#taulukko tbody");
     tbody.innerHTML = "";
 
+    // Jaa monihaku termeiksi
+    const terms = haku ? haku.split(/\s+/).filter(Boolean) : [];
+
     let rivit = data.filter(r => {
+        // Kirjainfiltteri artistille
         if (currentLetter) {
-            // startsWith on artistUpper; handle special Nordic letters correctly
             if (!r.artistUpper.startsWith(currentLetter)) {
                 return false;
             }
         }
-        if (haku) {
-            return r.artistUpper.includes(haku) || r.kappaleUpper.includes(haku);
-        }
-        return true;
+
+        // Jos ei hakua, hyväksytään rivi
+        if (terms.length === 0) return true;
+
+        // Jokaisen termin pitää löytyä jostain sarakkeesta
+        return terms.every(term => {
+            return r.artistUpper.includes(term) ||
+                   r.kappaleUpper.includes(term) ||
+                   r.koneUpper.includes(term) ||
+                   r.koodiUpper.includes(term);
+        });
     });
 
     rivit.sort((a, b) => {
@@ -257,13 +275,18 @@ function paivitaTaulukko() {
             const td = document.createElement("td");
             let teksti = r[k];
 
-            const hakuLocal = haeTeksti();
-            if (hakuLocal && teksti.toUpperCase().includes(hakuLocal)) {
-                const regex = new RegExp(hakuLocal, "gi");
-                teksti = teksti.replace(regex, m => `<mark>${m}</mark>`);
+            // Korostus useille termeille; tehdään turvallinen regex-termien yhdistelmä
+            if (terms.length > 0) {
+                let highlighted = teksti;
+                terms.forEach(t => {
+                    const esc = escapeRegExp(t);
+                    const regex = new RegExp(esc, "gi");
+                    highlighted = highlighted.replace(regex, m => `<mark>${m}</mark>`);
+                });
+                td.innerHTML = highlighted;
+            } else {
+                td.textContent = teksti;
             }
-
-            td.innerHTML = teksti;
 
             if (k === "KONE") td.style.backgroundColor = koneVari(r.KONE);
 
@@ -277,8 +300,7 @@ function paivitaTaulukko() {
     // Päivitä "Koko lista" -otsikko näyttämään rivien määrä
     const count = rivit.length;
     const kokolistaEl = document.getElementById("kokolista");
-    // Jos ei ole suodatusta, näytä koko datan määrä
-    if (!haeTeksti() && !currentLetter) {
+    if (!haku && !currentLetter) {
         kokolistaEl.innerText = `Koko lista ${data.length} kpl`;
     } else {
         kokolistaEl.innerText = `Koko lista ${count} kpl`;
@@ -310,7 +332,6 @@ function vaihdaTeema() {
 }
 
 function openHelp() {
-    // Avataan help.html uuteen välilehteen; käyttäjä sanoi kopioi help.html Hovin puolelta
     window.open("help.html", "_blank");
 }
 
