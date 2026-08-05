@@ -273,3 +273,238 @@ let sortKey = "ARTISTI";
 let sortDir = "asc";
 
 /* ------------------------------
+   CSV-LATAUS
+   ------------------------------ */
+
+async function lataaCSV() {
+    const url = "https://raw.githubusercontent.com/TavernaEskolanmaki/Taverna/main/kappaleet.csv";
+    const res = await fetch(url);
+    const txt = await res.text();
+
+    data = txt.trim().split("\n").map((r, idx) => {
+        const c = r.split(",");
+        return {
+            ARTISTI: c[0],
+            KAPPALE: c[1],
+            KONE: c[2],
+            KOODI: c[3],
+            artistUpper: c[0].toUpperCase(),
+            kappaleUpper: c[1].toUpperCase(),
+            koneUpper: c[2].toUpperCase(),
+            koodiUpper: c[3].toUpperCase(),
+            index: idx
+        };
+    });
+
+    paivitaTaulukko();
+}
+
+/* ------------------------------
+   HAKU
+   ------------------------------ */
+
+function haeTeksti() {
+    return document.getElementById("haku").value.toUpperCase().trim();
+}
+
+/* ------------------------------
+   KIRJAINVALINTA
+   ------------------------------ */
+
+function luoKirjainNapit() {
+    const nav = document.getElementById("kirjainnav");
+    const kirjaimet = "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ".split("");
+
+    kirjaimet.forEach(k => {
+        const b = document.createElement("button");
+        b.textContent = k;
+        b.onclick = () => { currentLetter = k; paivitaTaulukko(); };
+        nav.appendChild(b);
+    });
+
+    const tyhja = document.createElement("button");
+    tyhja.textContent = "Kaikki";
+    tyhja.onclick = () => { currentLetter = ""; paivitaTaulukko(); };
+    nav.appendChild(tyhja);
+}
+
+/* ------------------------------
+   TURVALLINEN HIGHLIGHTTAUS
+   ------------------------------ */
+
+function highlightText(node, terms) {
+    if (!terms.length) return;
+
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(n => {
+        let original = n.nodeValue;
+        let replaced = original;
+
+        terms.forEach(t => {
+            const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            replaced = replaced.replace(new RegExp(esc, "gi"), m => `@@@${m}@@@`);
+        });
+
+        if (replaced === original) return;
+
+        const frag = document.createDocumentFragment();
+        replaced.split(/(@@@.*?@@@)/).forEach(part => {
+            if (part.startsWith("@@@")) {
+                const mark = document.createElement("mark");
+                mark.textContent = part.slice(3, -3);
+                frag.appendChild(mark);
+            } else {
+                frag.appendChild(document.createTextNode(part));
+            }
+        });
+
+        n.parentNode.replaceChild(frag, n);
+    });
+}
+
+/* ------------------------------
+   TAULUKON JA KORTTIEN PÄIVITYS
+   ------------------------------ */
+
+function paivitaTaulukko() {
+    const haku = haeTeksti();
+    const terms = haku ? haku.split(/\s+/).filter(Boolean) : [];
+
+    let rivit = data.filter(r => {
+        if (currentLetter && !r.artistUpper.startsWith(currentLetter)) return false;
+        if (!terms.length) return true;
+
+        return terms.every(t =>
+            r.artistUpper.includes(t) ||
+            r.kappaleUpper.includes(t) ||
+            r.koneUpper.includes(t) ||
+            r.koodiUpper.includes(t)
+        );
+    });
+
+    rivit.sort((a, b) => {
+        let va = a[sortKey].toUpperCase();
+        let vb = b[sortKey].toUpperCase();
+        return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+
+    /* TAULUKKO DESKTOPILLE */
+    const tbody = document.querySelector("#taulukko tbody");
+    tbody.innerHTML = "";
+
+    rivit.forEach(r => {
+        const tr = document.createElement("tr");
+
+        ["ARTISTI","KAPPALE","KONE","KOODI"].forEach(k => {
+            const td = document.createElement("td");
+            td.textContent = r[k];
+            highlightText(td, terms);
+            if (k === "KONE") td.style.backgroundColor = koneVari(r.KONE);
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+
+    /* KORTIT MOBIILILLE */
+    const kortit = document.getElementById("kortit");
+    kortit.innerHTML = "";
+
+    rivit.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="card-title">${r.ARTISTI}</div>
+            <div class="card-sub">${r.KAPPALE}</div>
+            <div class="card-sub">Kone: ${r.KONE}</div>
+            <div class="card-sub">Koodi: ${r.KOODI}</div>
+        `;
+
+        highlightText(card, terms);
+        kortit.appendChild(card);
+    });
+
+    /* LÖYTYMISINFO */
+    document.getElementById("eiLoytynyt").style.display = rivit.length ? "none" : "block";
+
+    /* KOKO LISTA */
+    document.getElementById("kokolista").innerText =
+        (!haku && !currentLetter)
+        ? `Koko lista ${data.length} kpl`
+        : `Tuloksia ${rivit.length} kpl`;
+
+    paivitaSortOtsikot();
+}
+
+/* ------------------------------
+   LAJITTELU
+   ------------------------------ */
+
+function jarjesta(key) {
+    if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+    else { sortKey = key; sortDir = "asc"; }
+    paivitaTaulukko();
+}
+
+function paivitaSortOtsikot() {
+    ["ARTISTI","KAPPALE","KONE","KOODI"].forEach(k => {
+        const th = document.getElementById("th-" + k.toLowerCase());
+        th.classList.remove("sort-asc","sort-desc");
+        if (k === sortKey) th.classList.add(sortDir === "asc" ? "sort-asc" : "sort-desc");
+    });
+}
+
+/* ------------------------------
+   TEEMA
+   ------------------------------ */
+
+function vaihdaTeema() {
+    const body = document.body;
+    const btn = document.getElementById("teemanappi");
+
+    if (body.classList.contains("tumma")) {
+        body.classList.remove("tumma");
+        btn.textContent = "Tumma teema";
+    } else {
+        body.classList.add("tumma");
+        btn.textContent = "Vaalea teema";
+    }
+}
+
+/* ------------------------------
+   PÄIVITYSAIKA
+   ------------------------------ */
+
+async function haePaivitysaika() {
+    const apiUrl = "https://api.github.com/repos/TavernaEskolanmaki/Taverna/commits?path=kappaleet.csv";
+
+    try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        const pvm = new Date(data[0].commit.author.date);
+
+        document.getElementById("paivitysaika").innerText =
+            `Viimeksi päivitetty: ${pvm.getDate()}.${pvm.getMonth()+1}.${pvm.getFullYear()} klo ${pvm.getHours()}:${pvm.getMinutes().toString().padStart(2,"0")}`;
+    } catch {
+        document.getElementById("paivitysaika").innerText = "Virhe päivitysajan haussa";
+    }
+}
+
+/* ------------------------------
+   INIT
+   ------------------------------ */
+
+window.addEventListener("load", () => {
+    luoKirjainNapit();
+    lataaCSV();
+    haePaivitysaika();
+});
+</script>
+
+</body>
+</html>
