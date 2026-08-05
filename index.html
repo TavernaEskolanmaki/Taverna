@@ -2,265 +2,213 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Karaokehaku – Taverna Eskolanmäki</title>
+<title>Karaoke kappale haku Taverna</title>
 
 <style>
-/* ------------------------------
-   NORDIC ICE BLUE – MODERNI UI
-   ------------------------------ */
+body.vaalea { background:#ffffff; color:#000; font-family:Arial, sans-serif; margin:20px; }
+body.tumma  { background:#121212; color:#e0e0e0; font-family:Arial, sans-serif; margin:20px; }
 
-:root {
-    --bg: #f4f9ff;
-    --bg2: #ffffff;
-    --text: #1a1a1a;
-    --subtext: #4a4a4a;
-    --accent: #3a7bd5;
-    --accent-light: #d8e9ff;
-    --border: #d0d8e4;
-    --shadow: rgba(0,0,0,0.08);
-
-    --dark-bg: #1e1f22;
-    --dark-bg2: #2a2c31;
-    --dark-text: #f0f0f0;
-    --dark-subtext: #c0c0c0;
-    --dark-accent: #6aa8ff;
-    --dark-border: #3a3d42;
-    --dark-shadow: rgba(0,0,0,0.4);
+#ylapalkki {
+    position: sticky;
+    top: 0;
+    background: inherit;
+    padding-bottom: 10px;
+    z-index: 20;
 }
 
-body {
-    margin: 0;
-    font-family: "Inter", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    transition: background .3s, color .3s;
+/* Header-rakenne: otsikko vasemmalle, "Taverna" oikealle */
+.header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: nowrap;
+}
+h2#otsikko {
+    margin: 0 0 6px 0;
+    display: inline-block;
+    font-size: 24px;
+}
+#brand {
+    font-weight: bold;
+    font-size: 16px;
+    opacity: 0.9;
+    align-self: center;
 }
 
-body.tumma {
-    background: var(--dark-bg);
-    color: var(--dark-text);
+/* Haku-otsikko omalle rivilleen */
+h3#haku-otsikko {
+    margin: 6px 0 8px 0;
+    display: block;
+    font-size: 18px;
 }
 
-header {
-    padding: 20px;
-    text-align: center;
+/* Controls: haku-kenttä ja napit omalla rivillään */
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
 }
 
-h1 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 600;
+/* Haku-kentän leveys asetetaan JS:llä vastaamaan otsikon renderöityä leveyttä */
+#controls input {
+    padding: 10px;
+    font-size: 18px;
+    box-sizing: border-box;
+    min-width: 180px;
+    width: auto;
 }
 
-#haku {
-    margin-top: 15px;
-    padding: 12px 14px;
-    font-size: 1rem;
-    width: 90%;
-    max-width: 500px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    transition: background .3s, border .3s;
-}
-
-body.tumma #haku {
-    background: var(--dark-bg2);
-    border-color: var(--dark-border);
-    color: var(--dark-text);
-}
-
-nav {
-    margin: 20px auto;
-    text-align: center;
-}
-
-nav button {
-    margin: 3px;
-    padding: 8px 12px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
+button {
+    padding: 6px 12px;
+    margin: 4px 4px 0 0;
+    font-size: 14px;
     cursor: pointer;
-    transition: background .2s, color .2s;
 }
 
-body.tumma nav button {
-    background: var(--dark-bg2);
-    border-color: var(--dark-border);
-    color: var(--dark-text);
+#aznav {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+#aznav button {
+    padding: 4px 8px;
+    font-size: 13px;
 }
 
-nav button:hover {
-    background: var(--accent-light);
+.table-wrapper {
+    margin-top: 20px;
+    overflow-x: auto;
 }
 
-body.tumma nav button:hover {
-    background: var(--dark-accent);
-    color: #000;
-}
-
-#kokolista {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: var(--subtext);
-}
-
-body.tumma #kokolista {
-    color: var(--dark-subtext);
-}
-
-/* ------------------------------
-   HYBRIDI: TAULUKKO DESKTOPISSA
-   ------------------------------ */
-
-#taulukko {
-    width: 95%;
-    max-width: 1100px;
-    margin: 20px auto;
+table {
     border-collapse: collapse;
-    background: var(--bg2);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px var(--shadow);
+    width: 100%;
+    min-width: 480px;
+}
+th, td {
+    border: 1px solid #999;
+    padding: 6px 8px;
+    font-size: 14px;
 }
 
-body.tumma #taulukko {
-    background: var(--dark-bg2);
-    box-shadow: 0 2px 8px var(--dark-shadow);
-}
+tbody tr:hover { background: rgba(255,255,0,0.25); }
 
-#taulukko th, #taulukko td {
-    padding: 12px;
-    border-bottom: 1px solid var(--border);
-}
+body.vaalea thead th { background:#eee; color:#000; }
+body.tumma  thead th { background:#1f1f1f; color:#fff; }
 
-body.tumma #taulukko th, 
-body.tumma #taulukko td {
-    border-color: var(--dark-border);
-}
-
-#taulukko th {
-    background: var(--accent-light);
+thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     cursor: pointer;
 }
 
-body.tumma #taulukko th {
-    background: var(--dark-accent);
-    color: #000;
-}
-
-.sort-asc::after { content: " ▲"; }
-.sort-desc::after { content: " ▼"; }
-
-/* ------------------------------
-   HYBRIDI: KORTIT MOBIILISSA
-   ------------------------------ */
-
-@media (max-width: 700px) {
-    #taulukko { display: none; }
-
-    .card {
-        width: 90%;
-        margin: 12px auto;
-        padding: 14px;
-        background: var(--bg2);
-        border-radius: 10px;
-        box-shadow: 0 2px 6px var(--shadow);
-    }
-
-    body.tumma .card {
-        background: var(--dark-bg2);
-        box-shadow: 0 2px 6px var(--dark-shadow);
-        color: var(--dark-text);
-    }
-
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
-    .card-sub {
-        color: var(--subtext);
-        margin-top: 4px;
-    }
-
-    body.tumma .card-sub {
-        color: var(--dark-subtext);
-    }
-}
-
-/* ------------------------------ */
-
-mark {
-    background: var(--accent);
-    color: #fff;
-    padding: 1px 3px;
-    border-radius: 3px;
-}
-
-body.tumma mark {
-    background: var(--dark-accent);
-    color: #000;
-}
+th.sort-asc::after  { content: " ▲"; font-size: 11px; }
+th.sort-desc::after { content: " ▼"; font-size: 11px; }
 
 #eiLoytynyt {
-    text-align: center;
-    margin-top: 20px;
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: red;
     display: none;
 }
 
-#teemanappi {
-    margin-top: 20px;
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    cursor: pointer;
+/* Mobiilioptimointi */
+@media (max-width: 600px) {
+    body.vaalea, body.tumma {
+        margin: 10px;
+        font-size: 14px;
+    }
+    #controls input {
+        font-size: 16px;
+        min-width: 120px;
+    }
+    button {
+        font-size: 13px;
+    }
+    th, td {
+        font-size: 13px;
+        padding: 4px 6px;
+    }
 }
-
 </style>
 </head>
 
 <body class="vaalea">
 
-<header>
-    <h1 id="otsikko">Karaokehaku – Taverna Eskolanmäki</h1>
-    <input id="haku" type="text" placeholder="Hae artistia, kappaletta, konetta tai koodia…">
-    <br>
-    <button id="teemanappi" onclick="vaihdaTeema()">Tumma teema</button>
-</header>
+<div id="ylapalkki">
+    <div class="header-row">
+        <h2 id="otsikko">Karaoke kappale</h2>
+        <div id="brand">Taverna</div>
+    </div>
 
-<nav id="kirjainnav"></nav>
+    <h3 id="haku-otsikko">Haku</h3>
 
-<div id="kokolista"></div>
+    <div id="controls">
+        <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
+        <button onclick="paivitaNappi()">NOLLAUS</button>
+        <button onclick="vaihdaTeema()" id="teemanappi">Tumma teema</button>
+        <button onclick="openHelp()" id="helpnappi">HELP</button>
+    </div>
 
+    <p id="paivitysaika" style="font-size:16px; font-weight:bold; margin-top:8px;">Päivitetään...</p>
+
+    <div id="aznav">
+        <button onclick="valitseKirjain('')">Kaikki</button>
+        <button onclick="valitseKirjain('A')">A</button>
+        <button onclick="valitseKirjain('B')">B</button>
+        <button onclick="valitseKirjain('C')">C</button>
+        <button onclick="valitseKirjain('D')">D</button>
+        <button onclick="valitseKirjain('E')">E</button>
+        <button onclick="valitseKirjain('F')">F</button>
+        <button onclick="valitseKirjain('G')">G</button>
+        <button onclick="valitseKirjain('H')">H</button>
+        <button onclick="valitseKirjain('I')">I</button>
+        <button onclick="valitseKirjain('J')">J</button>
+        <button onclick="valitseKirjain('K')">K</button>
+        <button onclick="valitseKirjain('L')">L</button>
+        <button onclick="valitseKirjain('M')">M</button>
+        <button onclick="valitseKirjain('N')">N</button>
+        <button onclick="valitseKirjain('O')">O</button>
+        <button onclick="valitseKirjain('P')">P</button>
+        <button onclick="valitseKirjain('Q')">Q</button>
+        <button onclick="valitseKirjain('R')">R</button>
+        <button onclick="valitseKirjain('S')">S</button>
+        <button onclick="valitseKirjain('T')">T</button>
+        <button onclick="valitseKirjain('U')">U</button>
+        <button onclick="valitseKirjain('V')">V</button>
+        <button onclick="valitseKirjain('W')">W</button>
+        <button onclick="valitseKirjain('X')">X</button>
+        <button onclick="valitseKirjain('Y')">Y</button>
+        <button onclick="valitseKirjain('Z')">Z</button>
+        <button onclick="valitseKirjain('Å')">Å</button>
+        <button onclick="valitseKirjain('Ä')">Ä</button>
+        <button onclick="valitseKirjain('Ö')">Ö</button>
+    </div>
+
+    <div id="eiLoytynyt">Ei löytynyt</div>
+
+    <h3 id="kokolista">Koko lista</h3>
+</div>
+
+<div class="table-wrapper">
 <table id="taulukko">
-    <thead>
-        <tr>
-            <th id="th-artisti" onclick="jarjesta('ARTISTI')">Artisti</th>
-            <th id="th-kappale" onclick="jarjesta('KAPPALE')">Kappale</th>
-            <th id="th-kone" onclick="jarjesta('KONE')">Kone</th>
-            <th id="th-koodi" onclick="jarjesta('KOODI')">Koodi</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
+<thead>
+<tr>
+    <th onclick="jarjesta('ARTISTI')" id="th-artisti">ARTISTI</th>
+    <th onclick="jarjesta('KAPPALE')" id="th-kappale">KAPPALE</th>
+    <th onclick="jarjesta('KONE')"    id="th-kone">KONE</th>
+    <th onclick="jarjesta('KOODI')"   id="th-koodi">KOODI</th>
+</tr>
+</thead>
+<tbody></tbody>
 </table>
-
-<div id="kortit"></div>
-
-<div id="eiLoytynyt">Ei löytynyt</div>
-
-<div id="paivitysaika" style="text-align:center; margin:20px;"></div>
+</div>
 
 <script>
-/* ------------------------------
-   MODERNI OPTIMOITU JAVASCRIPT
-   ------------------------------ */
-
 function koneVari(kone) {
     if (kone === "MAD") return "#e8ffd0";
     if (kone === "MEL") return "#ffe8d0";
@@ -272,213 +220,175 @@ let currentLetter = "";
 let sortKey = "ARTISTI";
 let sortDir = "asc";
 
-/* ------------------------------
-   CSV-LATAUS
-   ------------------------------ */
-
 async function lataaCSV() {
     const url = "https://raw.githubusercontent.com/TavernaEskolanmaki/Taverna/main/kappaleet.csv";
     const res = await fetch(url);
     const txt = await res.text();
 
-    data = txt.trim().split("\n").map((r, idx) => {
-        const c = r.split(",");
-        return {
-            ARTISTI: c[0],
-            KAPPALE: c[1],
-            KONE: c[2],
-            KOODI: c[3],
-            artistUpper: c[0].toUpperCase(),
-            kappaleUpper: c[1].toUpperCase(),
-            koneUpper: c[2].toUpperCase(),
-            koodiUpper: c[3].toUpperCase(),
-            index: idx
-        };
-    });
+    const rows = txt
+        .trim()
+        .split("\n")
+        .map(r => r.split(","))
+        .filter(r => r.length >= 4);
+
+    data = rows.map((r, idx) => ({
+        ARTISTI: r[0],
+        KAPPALE: r[1],
+        KONE:    r[2],
+        KOODI:   r[3],
+        artistUpper: r[0].toUpperCase(),
+        kappaleUpper: r[1].toUpperCase(),
+        koneUpper: r[2].toUpperCase(),
+        koodiUpper: r[3].toUpperCase(),
+        index: idx
+    }));
 
     paivitaTaulukko();
 }
-
-/* ------------------------------
-   HAKU
-   ------------------------------ */
 
 function haeTeksti() {
     return document.getElementById("haku").value.toUpperCase().trim();
 }
 
-/* ------------------------------
-   KIRJAINVALINTA
-   ------------------------------ */
-
-function luoKirjainNapit() {
-    const nav = document.getElementById("kirjainnav");
-    const kirjaimet = "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ".split("");
-
-    kirjaimet.forEach(k => {
-        const b = document.createElement("button");
-        b.textContent = k;
-        b.onclick = () => { currentLetter = k; paivitaTaulukko(); };
-        nav.appendChild(b);
-    });
-
-    const tyhja = document.createElement("button");
-    tyhja.textContent = "Kaikki";
-    tyhja.onclick = () => { currentLetter = ""; paivitaTaulukko(); };
-    nav.appendChild(tyhja);
+function valitseKirjain(kirjain) {
+    currentLetter = kirjain;
+    paivitaTaulukko();
 }
 
-/* ------------------------------
-   TURVALLINEN HIGHLIGHTTAUS
-   ------------------------------ */
-
-function highlightText(node, terms) {
-    if (!terms.length) return;
-
-    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
-    const nodes = [];
-
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-
-    nodes.forEach(n => {
-        let original = n.nodeValue;
-        let replaced = original;
-
-        terms.forEach(t => {
-            const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            replaced = replaced.replace(new RegExp(esc, "gi"), m => `@@@${m}@@@`);
-        });
-
-        if (replaced === original) return;
-
-        const frag = document.createDocumentFragment();
-        replaced.split(/(@@@.*?@@@)/).forEach(part => {
-            if (part.startsWith("@@@")) {
-                const mark = document.createElement("mark");
-                mark.textContent = part.slice(3, -3);
-                frag.appendChild(mark);
-            } else {
-                frag.appendChild(document.createTextNode(part));
-            }
-        });
-
-        n.parentNode.replaceChild(frag, n);
-    });
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-
-/* ------------------------------
-   TAULUKON JA KORTTIEN PÄIVITYS
-   ------------------------------ */
 
 function paivitaTaulukko() {
     const haku = haeTeksti();
+    const tbody = document.querySelector("#taulukko tbody");
+    tbody.innerHTML = "";
+
     const terms = haku ? haku.split(/\s+/).filter(Boolean) : [];
 
     let rivit = data.filter(r => {
-        if (currentLetter && !r.artistUpper.startsWith(currentLetter)) return false;
-        if (!terms.length) return true;
+        if (currentLetter) {
+            if (!r.artistUpper.startsWith(currentLetter)) {
+                return false;
+            }
+        }
 
-        return terms.every(t =>
-            r.artistUpper.includes(t) ||
-            r.kappaleUpper.includes(t) ||
-            r.koneUpper.includes(t) ||
-            r.koodiUpper.includes(t)
-        );
+        if (terms.length === 0) return true;
+
+        return terms.every(term => {
+            return r.artistUpper.includes(term) ||
+                   r.kappaleUpper.includes(term) ||
+                   r.koneUpper.includes(term) ||
+                   r.koodiUpper.includes(term);
+        });
     });
 
     rivit.sort((a, b) => {
-        let va = a[sortKey].toUpperCase();
-        let vb = b[sortKey].toUpperCase();
-        return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+        let va = (a[sortKey] || "").toUpperCase();
+        let vb = (b[sortKey] || "").toUpperCase();
+        if (va < vb) return sortDir === "asc" ? -1 : 1;
+        if (va > vb) return sortDir === "asc" ? 1 : -1;
+        return 0;
     });
 
-    /* TAULUKKO DESKTOPILLE */
-    const tbody = document.querySelector("#taulukko tbody");
-    tbody.innerHTML = "";
+    let loytyi = false;
 
     rivit.forEach(r => {
         const tr = document.createElement("tr");
 
         ["ARTISTI","KAPPALE","KONE","KOODI"].forEach(k => {
             const td = document.createElement("td");
-            td.textContent = r[k];
-            highlightText(td, terms);
+            let teksti = r[k];
+
+            if (terms.length > 0) {
+                let highlighted = teksti;
+terms.forEach(t => {
+    const esc = escapeRegExp(t);
+    const regex = new RegExp(esc, "gi");
+    highlighted = highlighted.replace(regex, m => `@@@${m}@@@`);
+});
+
+// Aseta teksti ilman HTML-riskiä
+td.textContent = highlighted;
+
+// Muunna @@@...@@@ oikeiksi <mark>-tageiksi
+td.innerHTML = td.innerHTML.replace(/@@@(.*?)@@@/g, "<mark>$1</mark>");
+            } else {
+                td.textContent = teksti;
+            }
+
             if (k === "KONE") td.style.backgroundColor = koneVari(r.KONE);
+
             tr.appendChild(td);
         });
 
         tbody.appendChild(tr);
+        loytyi = true;
     });
 
-    /* KORTIT MOBIILILLE */
-    const kortit = document.getElementById("kortit");
-    kortit.innerHTML = "";
+    const count = rivit.length;
+    const kokolistaEl = document.getElementById("kokolista");
+    if (!haku && !currentLetter) {
+        kokolistaEl.innerText = `Koko lista ${data.length} kpl`;
+    } else {
+        kokolistaEl.innerText = `Koko lista ${count} kpl`;
+    }
 
-    rivit.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML = `
-            <div class="card-title">${r.ARTISTI}</div>
-            <div class="card-sub">${r.KAPPALE}</div>
-            <div class="card-sub">Kone: ${r.KONE}</div>
-            <div class="card-sub">Koodi: ${r.KOODI}</div>
-        `;
-
-        highlightText(card, terms);
-        kortit.appendChild(card);
-    });
-
-    /* LÖYTYMISINFO */
-    document.getElementById("eiLoytynyt").style.display = rivit.length ? "none" : "block";
-
-    /* KOKO LISTA */
-    document.getElementById("kokolista").innerText =
-        (!haku && !currentLetter)
-        ? `Koko lista ${data.length} kpl`
-        : `Tuloksia ${rivit.length} kpl`;
-
+    document.getElementById("eiLoytynyt").style.display = loytyi ? "none" : "block";
     paivitaSortOtsikot();
 }
 
-/* ------------------------------
-   LAJITTELU
-   ------------------------------ */
+function paivitaNappi() {
+    document.getElementById("haku").value = "";
+    currentLetter = "";
+    paivitaTaulukko();
+}
 
-function jarjesta(key) {
-    if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
-    else { sortKey = key; sortDir = "asc"; }
+function vaihdaTeema() {
+    const body = document.body;
+    const nappi = document.getElementById("teemanappi");
+
+    if (body.classList.contains("tumma")) {
+        body.classList.remove("tumma");
+        body.classList.add("vaalea");
+        nappi.textContent = "Tumma teema";
+    } else {
+        body.classList.remove("vaalea");
+        body.classList.add("tumma");
+        nappi.textContent = "Vaalea teema";
+    }
+}
+
+function openHelp() {
+    // Vie samaan välilehteen, jotta palatessa ei synny uusia Haku-välilehtiä.
+    window.location.href = "help.html";
+}
+
+function jarjesta(uusiKey) {
+    if (sortKey === uusiKey) {
+        sortDir = sortDir === "asc" ? "desc" : "asc";
+    } else {
+        sortKey = uusiKey;
+        sortDir = "asc";
+    }
     paivitaTaulukko();
 }
 
 function paivitaSortOtsikot() {
-    ["ARTISTI","KAPPALE","KONE","KOODI"].forEach(k => {
-        const th = document.getElementById("th-" + k.toLowerCase());
+    const keys = ["ARTISTI","KAPPALE","KONE","KOODI"];
+    keys.forEach(k => {
+        const th = document.getElementById(
+            k === "ARTISTI" ? "th-artisti" :
+            k === "KAPPALE" ? "th-kappale" :
+            k === "KONE"    ? "th-kone"    :
+                              "th-koodi"
+        );
         th.classList.remove("sort-asc","sort-desc");
-        if (k === sortKey) th.classList.add(sortDir === "asc" ? "sort-asc" : "sort-desc");
+        if (k === sortKey) {
+            th.classList.add(sortDir === "asc" ? "sort-asc" : "sort-desc");
+        }
     });
 }
-
-/* ------------------------------
-   TEEMA
-   ------------------------------ */
-
-function vaihdaTeema() {
-    const body = document.body;
-    const btn = document.getElementById("teemanappi");
-
-    if (body.classList.contains("tumma")) {
-        body.classList.remove("tumma");
-        btn.textContent = "Tumma teema";
-    } else {
-        body.classList.add("tumma");
-        btn.textContent = "Vaalea teema";
-    }
-}
-
-/* ------------------------------
-   PÄIVITYSAIKA
-   ------------------------------ */
 
 async function haePaivitysaika() {
     const apiUrl = "https://api.github.com/repos/TavernaEskolanmaki/Taverna/commits?path=kappaleet.csv";
@@ -486,23 +396,40 @@ async function haePaivitysaika() {
     try {
         const res = await fetch(apiUrl);
         const data = await res.json();
+
         const pvm = new Date(data[0].commit.author.date);
 
+        const paiva = pvm.getDate();
+        const kk = pvm.getMonth() + 1;
+        const vuosi = pvm.getFullYear();
+        const tunnit = pvm.getHours().toString().padStart(2, "0");
+        const minuutit = pvm.getMinutes().toString().padStart(2, "0");
+
         document.getElementById("paivitysaika").innerText =
-            `Viimeksi päivitetty: ${pvm.getDate()}.${pvm.getMonth()+1}.${pvm.getFullYear()} klo ${pvm.getHours()}:${pvm.getMinutes().toString().padStart(2,"0")}`;
-    } catch {
+            `Viimeksi päivitetty -> poy: ${paiva}.${kk}.${vuosi} klo ${tunnit}:${minuutit}`;
+
+    } catch (e) {
         document.getElementById("paivitysaika").innerText = "Virhe päivitysajan haussa";
     }
 }
 
-/* ------------------------------
-   INIT
-   ------------------------------ */
+/* Synkronoi hakukentän leveys otsikon renderöityyn leveyteen */
+function syncHakuLeveys() {
+    const otsikko = document.getElementById("otsikko");
+    const haku = document.getElementById("haku");
+    if (!otsikko || !haku) return;
+
+    const w = Math.ceil(otsikko.getBoundingClientRect().width);
+    haku.style.width = w + "px";
+}
 
 window.addEventListener("load", () => {
-    luoKirjainNapit();
     lataaCSV();
     haePaivitysaika();
+    syncHakuLeveys();
+});
+window.addEventListener("resize", () => {
+    syncHakuLeveys();
 });
 </script>
 
