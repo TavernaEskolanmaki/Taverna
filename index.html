@@ -16,21 +16,22 @@ body.tumma  { background:#121212; color:#e0e0e0; font-family:Arial, sans-serif; 
     z-index: 20;
 }
 
-h2, h3 { margin-bottom: 5px; }
+h2, h3 { margin-bottom: 5px; display:inline-block; } /* inline-block jotta leveys vastaa tekstin leveyttä */
 
 #controls {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+    margin-top: 8px;
 }
 
-/* Haku-kenttä venyy käytettävissä olevaan tilaan */
+/* Haku-kentän leveys asetetaan JS:llä vastaamaan h2-otsikon leveyttä,
+   joten ei käytetä flex:1 tässä */
 #controls input {
     padding: 10px;
     font-size: 18px;
     box-sizing: border-box;
-    flex: 1;
     min-width: 180px;
     width: auto;
 }
@@ -99,6 +100,7 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
     }
     #controls input {
         font-size: 16px;
+        min-width: 120px;
     }
     button {
         font-size: 13px;
@@ -114,12 +116,12 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
 <body class="vaalea">
 
 <div id="ylapalkki">
-    <h2>Karaoke kappale haku Taverna</h2>
+    <h2 id="otsikko">Karaoke kappale haku Taverna</h2>
 
     <h3>Haku</h3>
 
     <div id="controls">
-        <input id="haku" placeholder="Hae... (voit käyttää useita sanoja, esim. 'TAPIO HEINONEN 123')" oninput="paivitaTaulukko()">
+        <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
         <button onclick="paivitaNappi()">NOLLAUS</button>
         <button onclick="vaihdaTeema()" id="teemanappi">Tumma teema</button>
         <button onclick="openHelp()" id="helpnappi">HELP</button>
@@ -235,21 +237,17 @@ function paivitaTaulukko() {
     const tbody = document.querySelector("#taulukko tbody");
     tbody.innerHTML = "";
 
-    // Jaa monihaku termeiksi
     const terms = haku ? haku.split(/\s+/).filter(Boolean) : [];
 
     let rivit = data.filter(r => {
-        // Kirjainfiltteri artistille
         if (currentLetter) {
             if (!r.artistUpper.startsWith(currentLetter)) {
                 return false;
             }
         }
 
-        // Jos ei hakua, hyväksytään rivi
         if (terms.length === 0) return true;
 
-        // Jokaisen termin pitää löytyä jostain sarakkeesta
         return terms.every(term => {
             return r.artistUpper.includes(term) ||
                    r.kappaleUpper.includes(term) ||
@@ -275,7 +273,6 @@ function paivitaTaulukko() {
             const td = document.createElement("td");
             let teksti = r[k];
 
-            // Korostus useille termeille; tehdään turvallinen regex-termien yhdistelmä
             if (terms.length > 0) {
                 let highlighted = teksti;
                 terms.forEach(t => {
@@ -297,7 +294,6 @@ function paivitaTaulukko() {
         loytyi = true;
     });
 
-    // Päivitä "Koko lista" -otsikko näyttämään rivien määrä
     const count = rivit.length;
     const kokolistaEl = document.getElementById("kokolista");
     if (!haku && !currentLetter) {
@@ -332,7 +328,11 @@ function vaihdaTeema() {
 }
 
 function openHelp() {
-    window.open("help.html", "_blank");
+    // Vie samaan välilehteen, jotta palatessa ei synny uusia Haku-välilehtiä.
+    window.location.href = "help.html";
+    // Jos haluat avata help uuteen välilehteen, käytä:
+    // window.open("help.html", "_blank");
+    // ja muokkaa help.html:n takaisin-painiketta käyttämään window.close()
 }
 
 function jarjesta(uusiKey) {
@@ -384,10 +384,29 @@ async function haePaivitysaika() {
     }
 }
 
-window.onload = () => {
+/* --- Uusi: synkronoi hakukentän leveys otsikon tekstin leveyteen --- */
+function syncHakuLeveys() {
+    const otsikko = document.getElementById("otsikko");
+    const haku = document.getElementById("haku");
+    if (!otsikko || !haku) return;
+
+    // Käytetään otsikon renderöityä leveyttä
+    const w = Math.ceil(otsikko.getBoundingClientRect().width);
+    // Aseta leveys, mutta pidä myös minimi/maximi käytettävissä
+    haku.style.width = w + "px";
+}
+
+// Synkronoi latauksen jälkeen ja ikkunan koon muuttuessa
+window.addEventListener("load", () => {
     lataaCSV();
     haePaivitysaika();
-};
+    syncHakuLeveys();
+});
+window.addEventListener("resize", () => {
+    syncHakuLeveys();
+});
+/* ------------------------------------------------------------- */
+
 </script>
 
 </body>
