@@ -2,319 +2,223 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
-<title>Help – Karaoke kappale haku Taverna</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karaokehaku – Ohjeet</title>
 
 <style>
+/* ------------------------------
+   NORDIC ICE BLUE – HELP PAGE
+   ------------------------------ */
+
+:root {
+    --bg: #f4f9ff;
+    --bg2: #ffffff;
+    --text: #1a1a1a;
+    --subtext: #4a4a4a;
+    --accent: #3a7bd5;
+    --accent-light: #d8e9ff;
+    --border: #d0d8e4;
+    --shadow: rgba(0,0,0,0.08);
+
+    --dark-bg: #1e1f22;
+    --dark-bg2: #2a2c31;
+    --dark-text: #f0f0f0;
+    --dark-subtext: #c0c0c0;
+    --dark-accent: #6aa8ff;
+    --dark-border: #3a3d42;
+    --dark-shadow: rgba(0,0,0,0.4);
+}
+
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    line-height: 1.6;
-    background: #f7f7f7;
-    color: #222;
-    transition: background-color 0.35s ease, color 0.35s ease;
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background .3s, color .3s;
+    padding-bottom: 40px;
 }
+
+body.tumma {
+    background: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+header {
+    padding: 25px;
+    text-align: center;
+}
+
 h1 {
-    font-size: 28px;
-    margin-bottom: 10px;
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
 }
+
+section {
+    width: 90%;
+    max-width: 800px;
+    margin: 20px auto;
+    background: var(--bg2);
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+body.tumma section {
+    background: var(--dark-bg2);
+    box-shadow: 0 2px 8px var(--dark-shadow);
+}
+
 h2 {
-    margin-top: 30px;
-    font-size: 22px;
-    border-left: 6px solid #0077cc;
+    margin-top: 0;
+    font-size: 1.4rem;
+    border-left: 5px solid var(--accent);
     padding-left: 10px;
-    transition: border-left-color 0.35s ease;
 }
-h3 {
-    margin-top: 20px;
-    font-size: 18px;
+
+body.tumma h2 {
+    border-color: var(--dark-accent);
 }
-.section {
-    background: #fff;
-    padding: 15px 20px;
-    border-radius: 8px;
-    margin-top: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    transition: background-color 0.35s ease, color 0.35s ease, box-shadow 0.35s ease;
+
+p, li {
+    line-height: 1.6;
+    color: var(--subtext);
 }
-.note {
-    background: #fff8c6;
-    padding: 10px 15px;
-    border-left: 5px solid #e6c200;
-    margin-top: 10px;
-    border-radius: 6px;
-    transition: background-color 0.35s ease, color 0.35s ease;
+
+body.tumma p,
+body.tumma li {
+    color: var(--dark-subtext);
 }
-.code {
-    background: #eee;
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-family: Consolas, monospace;
-    transition: background-color 0.35s ease, color 0.35s ease;
-}
+
 ul {
-    margin-top: 10px;
-}
-.back {
-    margin-top: 30px;
-    display: inline-block;
-    padding: 10px 16px;
-    background: #0077cc;
-    color: #fff;
-    border-radius: 6px;
-    text-decoration: none;
-    transition: background-color 0.35s ease;
-}
-.back:hover {
-    background: #005fa3;
-}
-.float-top {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0077cc;
-    color: #fff;
-    padding: 12px 16px;
-    border-radius: 50%;
-    text-decoration: none;
-    font-size: 18px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    transition: background-color 0.35s ease, box-shadow 0.35s ease;
-}
-.float-top:hover {
-    background: #005fa3;
+    padding-left: 20px;
 }
 
-/* 🔴 Punainen “Ei löytynyt” */
-.ei-loytynyt {
-    color: red;
-    font-weight: bold;
-}
-
-/* 🌙 Tumma teema */
-.dark body {
-    background: #1e1e1e;
-    color: #e6e6e6;
-}
-.dark .section {
-    background: #2b2b2b;
-    color: #e6e6e6;
-    box-shadow: 0 2px 6px rgba(255,255,255,0.08);
-}
-.dark .note {
-    background: #4a3f00;
+button {
+    display: block;
+    margin: 30px auto 0;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
     color: #fff;
-}
-.dark .code {
-    background: #444;
-    color: #fff;
-}
-.dark h2 {
-    border-left-color: #66aaff;
-}
-.dark .back {
-    background: #3399ff;
-}
-.dark .back:hover {
-    background: #1a7fd1;
-}
-.dark .float-top {
-    background: #3399ff;
-    box-shadow: 0 2px 6px rgba(255,255,255,0.2);
-}
-.dark .float-top:hover {
-    background: #1a7fd1;
-}
-
-/* Teeman vaihtonappi */
-.theme-toggle {
-    float: right;
-    padding: 8px 14px;
-    background: #0077cc;
-    color: #fff;
-    border-radius: 6px;
-    text-decoration: none;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.35s ease;
 }
-.theme-toggle:hover {
-    background: #005fa3;
+
+button:hover {
+    background: var(--accent-light);
+    color: #000;
 }
-.dark .theme-toggle {
-    background: #3399ff;
+
+body.tumma button {
+    background: var(--dark-accent);
+    color: #000;
 }
-.dark .theme-toggle:hover {
-    background: #1a7fd1;
-}
+
 </style>
+</head>
+
+<body class="vaalea">
+
+<header>
+    <h1>Karaokehaku – Ohjeet</h1>
+</header>
+
+<section>
+    <h2>Mikä tämä sivu on?</h2>
+    <p>
+        Tämä on Taverna Eskolanmäen karaokehaun ohjesivu.  
+        Täältä löydät selkeät ja lyhyet ohjeet hakutoimintojen käyttöön.
+    </p>
+</section>
+
+<section>
+    <h2>Hakukenttä</h2>
+    <p>
+        Hakukenttä toimii kuten normaali tekstihaku.  
+        Voit kirjoittaa:
+    </p>
+    <ul>
+        <li>artistin nimen</li>
+        <li>kappaleen nimen</li>
+        <li>koneen (MAD / MEL)</li>
+        <li>kappalekoodin</li>
+    </ul>
+    <p>
+        Voit käyttää myös useita hakusanoja, esimerkiksi:
+        <br><strong>“abreu vale”</strong> → näyttää vain osumat, joissa molemmat sanat löytyvät.
+    </p>
+</section>
+
+<section>
+    <h2>Kirjainhaku</h2>
+    <p>
+        Yläreunan kirjainnapeilla voit rajata listan alkamaan tietyllä kirjaimella.
+        Esimerkiksi:
+    </p>
+    <ul>
+        <li><strong>A</strong> → näyttää vain artistit, jotka alkavat A:lla</li>
+        <li><strong>M</strong> → näyttää vain artistit, jotka alkavat M:llä</li>
+        <li><strong>Kaikki</strong> → poistaa rajauksen</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Lajittelu</h2>
+    <p>
+        Voit lajitella listan klikkaamalla taulukon otsikoita:
+    </p>
+    <ul>
+        <li><strong>Artisti</strong></li>
+        <li><strong>Kappale</strong></li>
+        <li><strong>Kone</strong></li>
+        <li><strong>Koodi</strong></li>
+    </ul>
+    <p>
+        Klikkaamalla samaa otsikkoa uudelleen lajittelusuunta vaihtuu.
+    </p>
+</section>
+
+<section>
+    <h2>Mobiilinäkymä</h2>
+    <p>
+        Puhelimella ja pienillä näytöillä taulukko muuttuu automaattisesti
+        selkeiksi korttinäkymiksi, jotka ovat helppoja selata.
+    </p>
+</section>
+
+<section>
+    <h2>Tumma / vaalea teema</h2>
+    <p>
+        Voit vaihtaa teeman painamalla “Tumma teema” / “Vaalea teema” -painiketta.
+        Valinta vaikuttaa sekä index.html-sivuun että tähän ohjesivuun.
+    </p>
+</section>
+
+<section>
+    <h2>Päivitysaika</h2>
+    <p>
+        Sivun alareunassa näkyy, milloin kappalelista (kappaleet.csv) on viimeksi
+        päivitetty GitHubissa.
+    </p>
+</section>
+
+<button onclick="window.location.href='index.html'">Palaa takaisin</button>
 
 <script>
-function applySavedTheme() {
-    const saved = localStorage.getItem("helpTheme");
+/* Sama teemanvaihto kuin index.html */
+function applyTheme() {
+    const body = document.body;
+    const saved = localStorage.getItem("karaokeTheme");
+
     if (saved === "dark") {
-        document.documentElement.classList.add("dark");
+        body.classList.add("tumma");
     }
 }
 
-function toggleTheme() {
-    document.documentElement.classList.toggle("dark");
-    const isDark = document.documentElement.classList.contains("dark");
-    localStorage.setItem("helpTheme", isDark ? "dark" : "light");
-}
-
-applySavedTheme();
+applyTheme();
 </script>
-
-</head>
-
-<body>
-<a id="top"></a>
-
-<!-- Teeman vaihto -->
-<a class="theme-toggle" onclick="toggleTheme()">Teema: Vaalea / Tumma</a>
-
-<a class="back" href="index.html">← Takaisin hakuun</a>
-
-<h1>📘 Karaoke kappale haku Taverna – Ohje</h1>
-
-<div class="section">
-<h2>🔗 Sivun avaaminen</h2>
-<p>Voit avata Tavernan listan karaokekappaleista QR‑koodista tai kirjoittamalla selaimeen osoitteen:</p>
-
-<div class="code">https://tavernaeskolanmaki.github.io/Taverna/</div>
-
-<p><b>Huom:</b> jos kirjoitat osoitteen selaimeen, sana <b>Taverna</b> pitää alkaa isolla T‑kirjaimella.</p>
-</div>
-
-<div class="section">
-<h2>📄 Näkymän sisältö</h2>
-<p>Sivulle avautuu oletuksena <b>kaikki Tavernan karaoke -kappaleet</b>.</p>
-<p>Yläpuolella näkyy:</p>
-<ul>
-<li>Koko lista xxxxx kpl – rivien määrä</li>
-<li>Hakukenttä</li>
-<li>NOLLAUS -nappi</li>
-<li>Aakkosnapit A–Ö</li>
-<li>Teeman vaihto (vaalea / tumma)</li>
-<li>Help -nappi</li>
-<li>Viimeksi päivitetty ‑aikaleima</li>
-</ul>
-<p>Alapuolella näkyy:</p>
-<p>Listaus karaokekappaleista, oletuksena (kaikki) haku lyhentää listaa...</p>
-</div>
-
-<div class="section">
-<h2>🔍 Haku</h2>
-<p>Kirjoita hakukenttään haettavaa <b>ARTISTIa</b> tai <b>KAPPALEtta</b> (tai <b>(KONE)</b> tai <b>(KOODI))</b></p>
-<ul>
-<li><b>ARTISTI</b> Etsittävän artistin nimi tai osa jostain kohtaa nimeä.</li>
-<li><b>KAPPALE</b> Etsittävän kappaleen nimi tai osa kappaleen nimestä.</li>
-<li><b>KONE</b> Missä kappaleen tiedosto on: "MAD" = MadBoy kovalevy karaokesoitin, "MEL" = Läppäri MelPlay.</li>
-<li><b>KOODI</b> ns. Tuottajan koodi tai nimi esim: "COV23" = Cover Karaoke no 23, "FIN..." -alkuiset = FinnKaraoke levyjä. "PWR..." -alkuiset = Tuottajana Power jne.</li>
-</ul>
-</div>
-
-<div class="section">
-<h2>🔠 Aakkosnapit</h2>
-<p>Aakkosnapit A–Ö lyhentävät listaa <b>ARTISTI</b>‑sarakkeen mukaan.</p>
-<p>(Napeista ei voi kirjoittaa, se vain suodattaa listaa).</p>
-</div>
-
-<div class="section">
-<h2>🧹 Hakukentän tyhjentäminen</h2>
-
-<h3>jos selaat -puhelimella</h3>
-<ul>
-<li>NOLLAUS ‑napilla</li>
-<li>Näppäimistön "<--" ‑painikkeella</li>
-<li>Maalaamalla hakukentässä oleva teksti ja kirjoittamalla päälle</li>
-</ul>
-
-<h3>selaus -PC:llä, -läppärillä, -tabletilla...</h3>
-<ul>
-<li>NOLLAUS‑napilla</li>
-<li>Backspace</li>
-<li>Delete</li>
-<li>Esc</li>
-<li>Maalaamalla teksti ja kirjoittamalla päälle</li>
-</ul>
-
-<div class="note">NOLLAUS nappi varmin → uusi haku.</div>
-</div>
-
-<div class="section">
-<h2>🌙 Teeman vaihto</h2>
-<p>Napauttamalla teemanappia tausta muuttuu mustaksi ja tekstit vaaleiksi.</p>
-<p>Oletuksena käytössä on <b>Vaalea -teema</b>.</p>
-</div>
-
-<div class="section">
-<h2><b>⏱ Viimeksi päivitetty</b></h2>
-<p>Kertoo, milloin kappalelistaan on viimeksi:</p>
-<ul>
-<li>lisätty -karaokekappale</li>
-<li>muutettu -karaokekappaletta</li>
-<li>poistettu -karaokekappale</li>
-</ul>
-
-<p>(HUOM! Karaokekappaleiden selaus -näytöllä ei pysty
-poistamaan tai muuttamaan mitään, joten voit huoletta selailla).</p>
-</div>
-
-<div class="section">
-<h2>↕ Sarakkeiden lajittelu</h2>
-<p>Kaikki sarakkeet voi lajitella A–Ö tai Ö–A.</p>
-<p>Napsauttamalla sarakkeen nimeä (ARTISTI, KAPPALE, KONE, KOODI) sen sarakkeen nimen perään ilmestyy pieni kolmio:</p>
-<ul>
-<li>▲ = nouseva järjestys</li>
-<li>▼ = laskeva järjestys</li>
-</ul>
-</div>
-
-<h3>Perushaku ja esimerkkejä:</h3>
-<p>Kirjoita hakukenttään haettavaa <b>ARTISTIa</b> tai <b>KAPPALEtta</b> (tai <b>(KONE)</b> tai <b>(KOODI))</b>.</p>
-
-<p>Haku löytää osumat <b>kaikista sarakkeista</b>.</p>
-
-<div class="code">yöli</div>
-
-<p>Näyttää kaikki rivit, joissa esiintyy sana "yöli" missä tahansa sarakkeessa.</p>
-
-<div class="note">Osumat korostetaan keltaisella.</div>
-
-<h3>Usean sanan haku</h3>
-<p>Voit hakea useilla sanoilla eri sarakkeista samaan aikaan Esim:</p>
-
-<div class="code">k tapio sinut fin</div>
-
-<p>Löytää:</p>
-<div class="code">KARI TAPIO / SINUT TULEN AINA MUISTAMAAN / MAD / FIN</div>
-
-<h3>Kirjainkoko</h3>
-<p>Voit kirjoittaa pienillä tai ISOILLA kirjaimilla – haku ei ole kirjainkokoherkkä.</p>
-
-<h3>Ei löytynyt</h3>
-<p>Jos haku ei löydä mitään:</p>
-<ul>
-<li>Koko lista 0 kpl</li>
-<li class="ei-loytynyt">Ei löytynyt</li>
-</ul>
-</div>
-
-<div class="section">
-<h2>📊 Rivimäärä</h2>
-<p>“Koko lista x kpl” kertoo montako riviä = kappaletta listalla.</p>
-<p>Esim. haulla <b>Kari Tapio</b> näkyy (kun ohje kirjoitettu):</p>
-<div class="code">Koko lista 189 kpl</div>
-</div>
-
-<div class="section">
-<h3>📝 Ohjetta päivitetty</h3>
-<p>Ohje luotu 5.8.2026 n. klo 04:49 (poy)</p>
-<p>korjttu virheet --"-- (poy)</p>
-</div>
-
-<a href="#top" class="float-top">↑ Ylös</a>    
-<a class="back" href="index.html">← Takaisin hakuun</a>
 
 </body>
 </html>
