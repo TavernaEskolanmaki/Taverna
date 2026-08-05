@@ -302,12 +302,17 @@ function paivitaTaulukko() {
 
             if (terms.length > 0) {
                 let highlighted = teksti;
-                terms.forEach(t => {
-                    const esc = escapeRegExp(t);
-                    const regex = new RegExp(esc, "gi");
-                    highlighted = highlighted.replace(regex, m => `<mark>${m}</mark>`);
-                });
-                td.innerHTML = highlighted;
+terms.forEach(t => {
+    const esc = escapeRegExp(t);
+    const regex = new RegExp(esc, "gi");
+    highlighted = highlighted.replace(regex, m => `@@@${m}@@@`);
+});
+
+// Aseta teksti ilman HTML-riskiä
+td.textContent = highlighted;
+
+// Muunna @@@...@@@ oikeiksi <mark>-tageiksi
+td.innerHTML = td.innerHTML.replace(/@@@(.*?)@@@/g, "<mark>$1</mark>");
             } else {
                 td.textContent = teksti;
             }
