@@ -3,11 +3,11 @@ https://github.com/TavernaEskolanmaki/Taverna
 
 
 4.8.2026 / poy
-+ Lisätty koodi.csv yksi uusi koodi TÄHTI
-+ Lisätty artisti.csv n. 15 uutta / puuttuvaa artistia
-+ Lisätty kappaleet.csv 64 uutta kappaletta suurin osa FIAT pari ZOOM
++ Lisätty koodi.csv yksi uusi koodi TÄHTI. OK.
++ Lisätty artisti.csv n. 15 uutta / puuttuvaa artistia. OK
++ Tarkoitus päivittää index.html näytöltä nappi linkki help.html. OK
++ index.html näytölle yht. kappaleita OK.
 
-
-- Tarkoitus päivittää index.html näytöltä nappi linkki linkki help.html 
-- index.html näytölle yht. kappaleita
+- Lisätty kappaleet.csv 64 uutta kappaletta suurin osa FIAT pari ZOOM
+   - Korjattava tuo edellinen 64 kpl. Kun meni just väärinpäin eli KAPPALE <-> ARTISTI käännä
 - käy kappaleet.csv läpi, on mm kappaleiden nimissä korjattavaa.
