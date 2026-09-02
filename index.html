@@ -2,7 +2,8 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Ei viewport-metatietoa: silloin puhelin näyttää sivun pienenä kokonaisuutena
+     (kuten ennen) ja niputuszoomaus toimii vapaasti suureen ja pieneen. -->
 <title>Karaoke kappale haku Taverna</title>
 
 <style>
@@ -250,8 +251,9 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
       HTML-escapen kautta.
    6. kappaleet.csv säilytetään selaimen muistissa (localStorage):
       lista näkyy heti käynnistyessä ja uusi data päivittyy taustalla.
-   7. Lisätty viewport-metatieto + touch-action: napit reagoivat
-      puhelimessa heti ilman tapausviivettä, mobiiliteemat tulevat käyttöön.
+   7. touch-action: napit reagoivat puhelimessa heti ilman tapausviivettä.
+      Viewport-metatietoa EI ole, jotta aloitusnäkymä näkyy pienenä
+      kokonaisuutena ja niputuszoomaus toimii kuten ennen.
    ===================================================================== */
 
 function koneVari(kone) {
