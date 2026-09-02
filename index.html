@@ -2,6 +2,7 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Karaoke kappale haku Taverna</title>
 
 <style>
@@ -15,6 +16,10 @@ body.tumma  { background:#121212; color:#e0e0e0; font-family:Arial, sans-serif; 
     padding-bottom: 10px;
     z-index: 20;
 }
+
+/* Poistaa puhelimien napautusviiveen ja zoomauksen tuplanapautuksella */
+button, input { touch-action: manipulation; }
+button { -webkit-tap-highlight-color: transparent; }
 
 /* Header-rakenne: otsikko vasemmalle, "Taverna" oikealle */
 .header-row {
@@ -116,6 +121,18 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
     display: none;
 }
 
+/* "Näytä lisää" -nappi listan lopussa */
+#lisaaAlue {
+    display: none;
+    text-align: center;
+    margin: 14px 0 30px 0;
+}
+#lisaaNappi {
+    padding: 10px 18px;
+    font-size: 15px;
+}
+#sentinelli { height: 2px; }
+
 /* Mobiilioptimointi */
 @media (max-width: 600px) {
     body.vaalea, body.tumma {
@@ -148,7 +165,7 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
     <h3 id="haku-otsikko">Haku</h3>
 
     <div id="controls">
-        <input id="haku" placeholder="Hae..." oninput="paivitaTaulukko()">
+        <input id="haku" placeholder="Hae..." autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search">
         <button onclick="paivitaNappi()">NOLLAUS</button>
         <button onclick="vaihdaTeema()" id="teemanappi">Tumma teema</button>
         <button onclick="openHelp()" id="helpnappi">HELP</button>
@@ -191,7 +208,7 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
 
     <div id="eiLoytynyt">Ei löytynyt</div>
 
-    <h3 id="kokolista">Koko lista</h3>
+    <h3 id="kokolista">Ladataan listaa...</h3>
 </div>
 
 <div class="table-wrapper">
@@ -208,30 +225,70 @@ th.sort-desc::after { content: " ▼"; font-size: 11px; }
 </table>
 </div>
 
+<!-- Lisää rivejä ladataan vierittäessä / napista -->
+<div id="lisaaAlue">
+    <button id="lisaaNappi" onclick="naytaLisaa()">Näytä lisää</button>
+</div>
+<div id="sentinelli"></div>
+
 <script>
+/* =====================================================================
+   Taverna Eskolanmäki - karaokehaku (nopeutettu versio puhelimille)
+
+   Tärkeimmät nopeutukset verrattuna vanhaan:
+   1. Vain 120 riviä renderöidään kerralla. Loput latautuvat automaattisesti
+      vieritessä (IntersectionObserver) tai "Näytä lisää" -napista.
+      -> Ei enää 12 748 rivin DOM-rakennusta joka painalluksella.
+   2. Hakukentässä on 100 ms debounce, eli lista ei päivity keskellä
+      kirjoittamista jokaisesta näppäimestä.
+   3. Järjestetyt listat lasketaan valmiiksi vain kerran per sarake+suunta.
+      Haku/napit eivät enää järjestä mitään uudelleen.
+   4. Kunkin rivin hakuteksti (artisti+kappale+kone+koodi) on esilaskettu
+      yhdeksi merkkijonoksi -> suodatus on yksi nopea läpikäynti.
+   5. Rivit rakennetaan merkkijonoista kerralla tbodyyn (paljon nopeampaa
+      kuin createElement-silmukka), ja korostus tehdään turvallisesti
+      HTML-escapen kautta.
+   6. kappaleet.csv säilytetään selaimen muistissa (localStorage):
+      lista näkyy heti käynnistyessä ja uusi data päivittyy taustalla.
+   7. Lisätty viewport-metatieto + touch-action: napit reagoivat
+      puhelimessa heti ilman tapausviivettä, mobiiliteemat tulevat käyttöön.
+   ===================================================================== */
+
 function koneVari(kone) {
     if (kone === "MAD") return "#e8ffd0";
     if (kone === "MEL") return "#ffe8d0";
     return "";
 }
 
-let data = [];
+const CHUNK = 120;           // montako riviä renderöidään kerralla
+const DEBOUNCE_MS = 100;     // hakuviive millisekunteina
+const CSV_URL = "https://raw.githubusercontent.com/TavernaEskolanmaki/Taverna/main/kappaleet.csv";
+const CSV_CACHE_KEY = "taverna_kappaleet_csv_v1";
+const UPPER = { ARTISTI: "artistUpper", KAPPALE: "kappaleUpper", KONE: "koneUpper", KOODI: "koodiUpper" };
+
+let data = [];               // kaikki rivit
+let hay = [];                // esilaskettu hakuteksti riveittäin
+let sortedViews = {};        // "SARAKE_suunta" -> valmis järjestetty lista
 let currentLetter = "";
 let sortKey = "ARTISTI";
 let sortDir = "asc";
+let currentTerms = [];       // aktiiviset hakusanat
+let highlightRegex = null;   // yhdistetty korostusregex
+let visibleRows = [];        // suodatettu + järjestetty lista
+let renderedCount = 0;       // montako riviä on nyt DOMissa
+let loaded = false;
+let debounceTimer = null;
 
-async function lataaCSV() {
-    const url = "https://raw.githubusercontent.com/TavernaEskolanmaki/Taverna/main/kappaleet.csv";
-    const res = await fetch(url);
-    const txt = await res.text();
+/* ---------- CSV:n haku ja jäsentäminen ---------- */
 
+function parseCSV(txt) {
     const rows = txt
         .trim()
         .split("\n")
         .map(r => r.split(","))
         .filter(r => r.length >= 4);
 
-    data = rows.map((r, idx) => ({
+    return rows.map((r, idx) => ({
         ARTISTI: r[0],
         KAPPALE: r[1],
         KONE:    r[2],
@@ -242,106 +299,192 @@ async function lataaCSV() {
         koodiUpper: r[3].toUpperCase(),
         index: idx
     }));
+}
 
+function alustaData(txt) {
+    data = parseCSV(txt);
+    hay = data.map(r => r.artistUpper + "\n" + r.kappaleUpper + "\n" + r.koneUpper + "\n" + r.koodiUpper);
+    sortedViews = {};
+    loaded = true;
     paivitaTaulukko();
 }
+
+function lataaCSV() {
+    let cached = null;
+    try { cached = localStorage.getItem(CSV_CACHE_KEY); } catch (e) {}
+
+    // 1) Näytä välimuistissa oleva lista HETI (nopea käynnistys puhelimessa)
+    if (cached) alustaData(cached);
+
+    // 2) Hae tuore lista taustalla; päivitä näkymä vain jos data muuttunut
+    fetch(CSV_URL, { cache: "no-cache" })
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.text();
+        })
+        .then(txt => {
+            if (!cached || txt !== cached) {
+                try { localStorage.setItem(CSV_CACHE_KEY, txt); } catch (e) {}
+                alustaData(txt);
+            }
+        })
+        .catch(() => {
+            if (!cached) {
+                document.getElementById("kokolista").innerText = "Virhe listan latauksessa";
+            }
+        });
+}
+
+/* ---------- Järjestäminen (valmiiksi laskettu, ei toistoa hakua varten) ---------- */
+
+function getSortedView(key, dir) {
+    const id = key + "_" + dir;
+    if (sortedViews[id]) return sortedViews[id];
+
+    const arr = data.slice();
+    const upKey = UPPER[key];
+    const mul = dir === "asc" ? 1 : -1;
+    arr.sort((a, b) => {
+        const va = a[upKey], vb = b[upKey];
+        if (va < vb) return -1 * mul;
+        if (va > vb) return 1 * mul;
+        return a.index - b.index;   // tasatilanteessa alkuperäinen järjestys
+    });
+    sortedViews[id] = arr;
+    return arr;
+}
+
+/* ---------- Suodatus ---------- */
 
 function haeTeksti() {
     return document.getElementById("haku").value.toUpperCase().trim();
 }
+
+function suodata() {
+    const base = getSortedView(sortKey, sortDir);
+    if (!currentLetter && currentTerms.length === 0) return base;
+
+    const L = currentLetter;
+    const terms = currentTerms;
+    return base.filter(r => {
+        if (L && !r.artistUpper.startsWith(L)) return false;
+        for (let i = 0; i < terms.length; i++) {
+            if (!hay[r.index].includes(terms[i])) return false;
+        }
+        return true;
+    });
+}
+
+/* ---------- Renderöinti ---------- */
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function escHTML(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/* Korostaa hakusanoat <mark>-tageilla turvallisesti (ei innerHTML-riskiä) */
+function solunHTML(teksti) {
+    if (!highlightRegex) return escHTML(teksti);
+
+    let out = "";
+    let last = 0;
+    let m;
+    highlightRegex.lastIndex = 0;
+    while ((m = highlightRegex.exec(teksti)) !== null) {
+        out += escHTML(teksti.slice(last, m.index)) + "<mark>" + escHTML(m[0]) + "</mark>";
+        last = m.index + m[0].length;
+        if (m[0].length === 0) {
+            highlightRegex.lastIndex++;
+            if (highlightRegex.lastIndex > teksti.length) break;
+        }
+    }
+    return out + escHTML(teksti.slice(last));
+}
+
+function riviHTML(r) {
+    const vari = koneVari(r.KONE);
+    return "<tr>"
+        + "<td>" + solunHTML(r.ARTISTI) + "</td>"
+        + "<td>" + solunHTML(r.KAPPALE) + "</td>"
+        + '<td style="background-color:' + (vari || "transparent") + '">' + solunHTML(r.KONE) + "</td>"
+        + "<td>" + solunHTML(r.KOODI) + "</td>"
+        + "</tr>";
+}
+
+/* Lisää n riviä DOMiin ilman vanhojen rivien uudelleenrakentamista */
+function renderLisaa(n) {
+    if (!visibleRows.length) { paivitaLisaaNappi(); return; }
+
+    const target = Math.min(renderedCount + n, visibleRows.length);
+    if (target > renderedCount) {
+        const parts = [];
+        for (let i = renderedCount; i < target; i++) parts.push(riviHTML(visibleRows[i]));
+        document.querySelector("#taulukko tbody").insertAdjacentHTML("beforeend", parts.join(""));
+        renderedCount = target;
+    }
+    paivitaLisaaNappi();
+}
+
+function paivitaLisaaNappi() {
+    const jaljella = visibleRows.length - renderedCount;
+    const alue = document.getElementById("lisaaAlue");
+    if (jaljella > 0) {
+        alue.style.display = "block";
+        document.getElementById("lisaaNappi").textContent =
+            "Näytä lisää (" + jaljella + " kpl jäljellä)";
+    } else {
+        alue.style.display = "none";
+    }
+}
+
+/* ---------- Pääpäivitys (haku, napit, järjestys) ---------- */
+
+function paivitaTaulukko() {
+    if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
+    if (!loaded) return;
+
+    const haku = haeTeksti();
+    currentTerms = haku ? haku.split(/\s+/).filter(Boolean) : [];
+    highlightRegex = currentTerms.length
+        ? new RegExp(currentTerms.map(escapeRegExp).join("|"), "gi")
+        : null;
+
+    visibleRows = suodata();
+
+    document.querySelector("#taulukko tbody").innerHTML = "";
+    renderedCount = 0;
+
+    const count = visibleRows.length;
+    const kokolistaEl = document.getElementById("kokolista");
+    if (!haku && !currentLetter) {
+        kokolistaEl.innerText = "Koko lista " + data.length + " kpl";
+    } else {
+        kokolistaEl.innerText = "Koko lista " + count + " kpl";
+    }
+
+    document.getElementById("eiLoytynyt").style.display = count ? "none" : "block";
+    paivitaSortOtsikot();
+    renderLisaa(CHUNK);
+}
+
+/* ---------- Napit ---------- */
 
 function valitseKirjain(kirjain) {
     currentLetter = kirjain;
     paivitaTaulukko();
 }
 
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function paivitaTaulukko() {
-    const haku = haeTeksti();
-    const tbody = document.querySelector("#taulukko tbody");
-    tbody.innerHTML = "";
-
-    const terms = haku ? haku.split(/\s+/).filter(Boolean) : [];
-
-    let rivit = data.filter(r => {
-        if (currentLetter) {
-            if (!r.artistUpper.startsWith(currentLetter)) {
-                return false;
-            }
-        }
-
-        if (terms.length === 0) return true;
-
-        return terms.every(term => {
-            return r.artistUpper.includes(term) ||
-                   r.kappaleUpper.includes(term) ||
-                   r.koneUpper.includes(term) ||
-                   r.koodiUpper.includes(term);
-        });
-    });
-
-    rivit.sort((a, b) => {
-        let va = (a[sortKey] || "").toUpperCase();
-        let vb = (b[sortKey] || "").toUpperCase();
-        if (va < vb) return sortDir === "asc" ? -1 : 1;
-        if (va > vb) return sortDir === "asc" ? 1 : -1;
-        return 0;
-    });
-
-    let loytyi = false;
-
-    rivit.forEach(r => {
-        const tr = document.createElement("tr");
-
-        ["ARTISTI","KAPPALE","KONE","KOODI"].forEach(k => {
-            const td = document.createElement("td");
-            let teksti = r[k];
-
-            if (terms.length > 0) {
-                let highlighted = teksti;
-terms.forEach(t => {
-    const esc = escapeRegExp(t);
-    const regex = new RegExp(esc, "gi");
-    highlighted = highlighted.replace(regex, m => `@@@${m}@@@`);
-});
-
-// Aseta teksti ilman HTML-riskiä
-td.textContent = highlighted;
-
-// Muunna @@@...@@@ oikeiksi <mark>-tageiksi
-td.innerHTML = td.innerHTML.replace(/@@@(.*?)@@@/g, "<mark>$1</mark>");
-            } else {
-                td.textContent = teksti;
-            }
-
-            if (k === "KONE") td.style.backgroundColor = koneVari(r.KONE);
-
-            tr.appendChild(td);
-        });
-
-        tbody.appendChild(tr);
-        loytyi = true;
-    });
-
-    const count = rivit.length;
-    const kokolistaEl = document.getElementById("kokolista");
-    if (!haku && !currentLetter) {
-        kokolistaEl.innerText = `Koko lista ${data.length} kpl`;
-    } else {
-        kokolistaEl.innerText = `Koko lista ${count} kpl`;
-    }
-
-    document.getElementById("eiLoytynyt").style.display = loytyi ? "none" : "block";
-    paivitaSortOtsikot();
-}
-
 function paivitaNappi() {
     document.getElementById("haku").value = "";
     currentLetter = "";
     paivitaTaulukko();
+}
+
+function naytaLisaa() {
+    renderLisaa(CHUNK);
 }
 
 function vaihdaTeema() {
@@ -390,14 +533,16 @@ function paivitaSortOtsikot() {
     });
 }
 
+/* ---------- Päivitysaika GitHubista ---------- */
+
 async function haePaivitysaika() {
     const apiUrl = "https://api.github.com/repos/TavernaEskolanmaki/Taverna/commits?path=kappaleet.csv";
 
     try {
         const res = await fetch(apiUrl);
-        const data = await res.json();
+        const commits = await res.json();
 
-        const pvm = new Date(data[0].commit.author.date);
+        const pvm = new Date(commits[0].commit.author.date);
 
         const paiva = pvm.getDate();
         const kk = pvm.getMonth() + 1;
@@ -413,6 +558,8 @@ async function haePaivitysaika() {
     }
 }
 
+/* ---------- Muut apurit ---------- */
+
 /* Synkronoi hakukentän leveys otsikon renderöityyn leveyteen */
 function syncHakuLeveys() {
     const otsikko = document.getElementById("otsikko");
@@ -421,6 +568,22 @@ function syncHakuLeveys() {
 
     const w = Math.ceil(otsikko.getBoundingClientRect().width);
     haku.style.width = w + "px";
+}
+
+/* Haku debounce: lista päivittyy vasta kun kirjoittaminen hetken taukoaa */
+document.getElementById("haku").addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(paivitaTaulukko, DEBOUNCE_MS);
+});
+
+/* Automaattinen lisärivien lataus vieritessä lähelle listan loppua */
+if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(entries => {
+        if (entries.some(e => e.isIntersecting) && visibleRows.length - renderedCount > 0) {
+            renderLisaa(CHUNK);
+        }
+    }, { rootMargin: "700px 0px" });
+    io.observe(document.getElementById("sentinelli"));
 }
 
 window.addEventListener("load", () => {
